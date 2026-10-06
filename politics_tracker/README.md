@@ -1,28 +1,29 @@
-# 考研政治刷题统计
+# 考研政治刷题统计 · 详细使用指南
 
-完全本地运行。原始操作保存在 SQLite 的 `events` 表；Session、错题池和当前状态可随时从事件重算。截图只作为附件，不参与统计。
+项目介绍、功能概览与快速开始见 [仓库首页](../README.md)。本文说明录入规则、历史数据导入、报表及备份恢复。
+
+程序完全本地运行。原始操作保存在 SQLite 的 `events` 表；Session、错题池和当前状态可随时从事件重算。截图只作为附件，不参与统计。下文的数据文件路径均相对于 `politics_tracker` 目录。
 
 ## Windows 启动
 
-直接双击工作区根目录的 `启动刷题统计.bat`。启动器会打开浏览器；首次启动若系统尚无 Streamlit，会在项目目录建立 `.venv` 并安装依赖。关闭服务可双击根目录的 `关闭刷题统计.bat`。项目目录内也提供对应的 `start.bat` 和 `stop.bat`。
+需要 Python 3.11 或更高版本。直接双击仓库根目录的 `启动刷题统计.bat`。启动器会打开浏览器；首次启动若系统尚无 Streamlit，会在 `politics_tracker` 目录建立 `.venv` 并安装依赖。关闭服务可双击仓库根目录的 `关闭刷题统计.bat`。本目录内也提供对应的 `start.bat` 和 `stop.bat`。
 
 如需从命令行启动，在 `politics_tracker` 目录打开 PowerShell：
 
 ```powershell
 py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-python -m streamlit run app.py
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m streamlit run app.py
 ```
 
-浏览器会打开本地 Streamlit 页面。程序不需要联网服务或账号；安装依赖时可能需要网络。
+如果安装的是其他受支持的 Python 版本，请相应调整 `py -3.11`。启动后访问 [http://localhost:8501](http://localhost:8501)。程序不需要联网服务或账号；首次安装依赖时需要网络。
 
 ## 导入已有数据
 
-**仅在首次录入任何记录之前**运行一次：
+`seed_initial.py` 用于导入本项目预设的历史汇总，不是通用数据导入器。新用户可直接从空数据库开始录入，无需运行该脚本。如需使用这份历史汇总，**仅在首次录入任何记录之前**，在本目录运行一次：
 
 ```powershell
-python seed_initial.py
+.\.venv\Scripts\python.exe seed_initial.py
 ```
 
 导入 A0：单选 68 题、错 18；多选 58 题、错 32。导入 A1：单选作答 14、正确 11、再错 3；多选作答 2、正确 2。导入后 A1 池为 4/30、A2 池为 3/0，App 错题本为 7/30。原始刷题日期没有提供，因此事件按导入当天存档，并明确标记“历史汇总导入，实际刷题日期未知”。可用 `--date YYYY-MM-DD` 指定存档日期。
@@ -95,8 +96,12 @@ rewrong_multiple=0
 
 “重新计算全部统计”从 `events` 重新生成 Session、错题池和当前状态。“撤销最近一次操作”删除最后一条事件并重建。界面可导出 Session CSV、Session JSON、当前统计 Markdown 和完整 SQLite 数据库。要跨电脑迁移，优先复制完整 SQLite 数据库及需要保留的截图附件。
 
+数据库、报表、截图、备份、日志和虚拟环境均已被 Git 忽略，不会上传到远程仓库。克隆仓库只会取得应用代码；个人学习数据需要另外迁移。
+
 ## 测试
 
+在本目录安装依赖后执行：
+
 ```powershell
-python -m pytest -q
+.\.venv\Scripts\python.exe -m pytest -q
 ```
