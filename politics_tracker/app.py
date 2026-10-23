@@ -50,7 +50,7 @@ with connect() as db:
         st.stop()
 
 st.title("考研政治刷题统计")
-st.caption("本地事件日志 · 自动计算 · 日报 / 周报 / 月报 / 自选时间段报")
+st.caption("本地事件日志 · 自动计算 · 日报 / 7日报 / 30日报 / 自选时间段报")
 page = st.sidebar.radio("导航", ["概览", "新建记录", "历史与报表", "导出与维护"])
 
 if page == "概览":
@@ -192,7 +192,7 @@ elif page == "历史与报表":
         "错误": r["wrong_single"]+r["wrong_multiple"], "备注": r["note"],
     } for r in reversed(rows)], hide_index=True, width="stretch")
     dates = sorted({r["session_date"] for r in rows}, reverse=True)
-    report_type = st.radio("报表类型", ("日报", "周报", "月报", "自选时间段报"), horizontal=True)
+    report_type = st.radio("报表类型", ("日报", "7日报", "30日报", "自选时间段报"), horizontal=True)
     if report_type == "自选时间段报":
         c1, c2 = st.columns(2)
         start = c1.date_input("开始日期", value=date.fromisoformat(dates[-1]) if dates else date.today())
@@ -204,11 +204,9 @@ elif page == "历史与报表":
     elif report_type == "日报" and dates:
         start = end = st.selectbox("查看日报", dates)
     else:
-        reference = st.date_input("选择周内任一天" if report_type == "周报" else
-                                  "选择月内任一天" if report_type == "月报" else "选择日期",
-                                  value=date.fromisoformat(dates[0]) if dates else date.today())
+        reference = st.date_input("截止日期", value=date.today())
         start, end = period_bounds(reference, report_type)
-    st.caption(f"统计日期：{start} 至 {end}（含起止日）。周报按周一至周日，月报按自然月。累计数据截至所选期末。")
+    st.caption(f"统计日期：{start} 至 {end}（含起止日）。7日报和30日报分别涵盖截至所选日期的最近7天、30天。累计数据截至所选期末。")
     with connect() as db:
         report, report_data = period_report(db, start, end, report_type)
     if not report:

@@ -138,13 +138,9 @@ def period_bounds(day, report_type):
     day = date.fromisoformat(str(day))
     if report_type == "日报":
         return day.isoformat(), day.isoformat()
-    if report_type == "周报":
-        start = day - timedelta(days=day.weekday())
-        end = start + timedelta(days=6)
-    elif report_type == "月报":
-        start = day.replace(day=1)
-        end = (start.replace(year=start.year + 1, month=1) if start.month == 12
-               else start.replace(month=start.month + 1)) - timedelta(days=1)
+    if report_type in ("7日报", "30日报"):
+        end = day
+        start = end - timedelta(days=6 if report_type == "7日报" else 29)
     else:
         raise ValueError("不支持的报表类型")
     return start.isoformat(), end.isoformat()
@@ -298,7 +294,7 @@ def write_period_reports(path=DEFAULT_DB, output_dir=None):
     root = Path(output_dir or ROOT / "reports")
     with connect(path) as db:
         dates = [r[0] for r in db.execute("SELECT DISTINCT session_date FROM sessions")]
-        for report_type, name in (("周报", "weekly"), ("月报", "monthly")):
+        for report_type, name in (("7日报", "rolling7"), ("30日报", "rolling30")):
             folder = root / name
             folder.mkdir(parents=True, exist_ok=True)
             periods = {period_bounds(day, report_type) for day in dates}

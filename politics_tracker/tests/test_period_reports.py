@@ -9,11 +9,11 @@ from src.reports import (period_bounds, period_report, save_custom_report,
 
 
 @pytest.mark.parametrize("day,kind,expected", [
-    ("2026-10-04", "周报", ("2026-09-28", "2026-10-04")),
-    ("2026-10-05", "周报", ("2026-10-05", "2026-10-11")),
-    ("2026-12-31", "周报", ("2026-12-28", "2027-01-03")),
-    ("2024-02-15", "月报", ("2024-02-01", "2024-02-29")),
-    ("2026-12-31", "月报", ("2026-12-01", "2026-12-31")),
+    ("2026-10-04", "7日报", ("2026-09-28", "2026-10-04")),
+    ("2026-10-05", "7日报", ("2026-09-29", "2026-10-05")),
+    ("2026-12-31", "7日报", ("2026-12-25", "2026-12-31")),
+    ("2024-02-15", "30日报", ("2024-01-17", "2024-02-15")),
+    ("2026-12-31", "30日报", ("2026-12-02", "2026-12-31")),
 ])
 def test_calendar_bounds(day, kind, expected):
     assert period_bounds(day, kind) == expected
@@ -32,7 +32,7 @@ def ledger(tmp_path):
 
 def test_period_activity_and_end_snapshot_are_distinct(ledger):
     with connect(ledger) as db:
-        content, data = period_report(db, "2026-09-28", "2026-10-04", "周报")
+        content, data = period_report(db, "2026-09-28", "2026-10-04", "7日报")
     assert [r["session_date"] for r in data["period_sessions"]] == ["2026-09-28", "2026-10-04"]
     assert data["period_totals"]["A0"]["total"] == {"attempted": 7, "correct": 5, "wrong": 2}
     assert data["period_totals"]["A1"]["total"]["attempted"] == 1
@@ -57,13 +57,13 @@ def test_archives_and_custom_ranges_refresh_after_undo(ledger, tmp_path):
     root = tmp_path / "reports"
     custom = save_custom_report("2026-10-05", "2026-10-05", ledger, root / "custom")
     write_daily_reports(ledger, root / "daily")
-    week = root / "weekly" / "2026-10-05_2026-10-11.md"
+    week = root / "rolling7" / "2026-09-29_2026-10-05.md"
     assert week.exists()
-    month = root / "monthly" / "2026-10-01_2026-10-31.json"
-    assert json.loads(month.read_text(encoding="utf-8"))["period_totals"]["A0"]["total"]["attempted"] == 14
+    month = root / "rolling30" / "2026-09-05_2026-10-04.json"
+    assert json.loads(month.read_text(encoding="utf-8"))["period_totals"]["A0"]["total"]["attempted"] == 22
     undo_last(ledger)
     write_daily_reports(ledger, root / "daily")
     assert not week.exists()
     assert not week.with_suffix(".json").exists()
     assert "该时间段没有刷题记录" in custom.read_text(encoding="utf-8")
-    assert json.loads(month.read_text(encoding="utf-8"))["period_totals"]["A0"]["total"]["attempted"] == 7
+    assert json.loads(month.read_text(encoding="utf-8"))["period_totals"]["A0"]["total"]["attempted"] == 22

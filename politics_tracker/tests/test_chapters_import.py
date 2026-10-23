@@ -338,7 +338,7 @@ def test_ui_reports_select_periods_and_validate_dates(app_test, ledger):
     add_session("A0", Pair(1, 0), Pair(10, 0), session_date="2026-10-04", path=ledger)
     app.sidebar.radio[0].set_value("历史与报表").run()
     assert not app.exception
-    for kind in ("周报", "月报", "自选时间段报"):
+    for kind in ("7日报", "30日报", "自选时间段报"):
         next(item for item in app.radio if item.label == "报表类型").set_value(kind).run()
         assert not app.exception
         assert any(f"考研政治刷题{kind}" in item.value for item in app.markdown)
