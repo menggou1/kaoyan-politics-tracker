@@ -319,10 +319,10 @@ def test_ui_dashboard_filters_and_chapter_maintenance(app_test, ledger):
     add_session("A0", Pair(1, 0), Pair(10, 0), chapter="马原", path=ledger)
     add_session("A0", Pair(2, 0), Pair(20, 0), chapter="史纲", path=ledger)
     app.sidebar.radio[0].set_value("概览").run()
-    assert app.metric[0].value == "30 / 1098"
+    assert app.metric[0].value == "30 / 1148"
     next(item for item in app.selectbox if item.label == "章节筛选").set_value("史纲").run()
     assert not app.exception
-    assert app.metric[0].value == "20 / 1098"
+    assert app.metric[0].value == "20 / 251"
     app.sidebar.radio[0].set_value("导出与维护").run()
     assert not app.exception
     next(item for item in app.selectbox if item.label == "维护章节").set_value("史纲").run()

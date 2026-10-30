@@ -1,6 +1,7 @@
 """Human-readable daily reports and portable exports."""
 
 import csv
+from .progress import BANK_TOTAL
 import io
 import json
 from datetime import date, timedelta
@@ -162,7 +163,7 @@ def period_markdown(start, end, snap, report_type="自选时间段报"):
         return ""
     settings, pools, wrongbook = snap["settings"], snap["pools"], snap["wrongbook"]
     bank_name = settings["question_bank_name"]
-    bank_total = int(settings["question_bank_total"])
+    bank_total = BANK_TOTAL
     logical = {kind: sum(p[kind] for p in pools.values()) for kind in ("single", "multiple")}
     consistent = logical == wrongbook
     span = start if daily else f"{start} ～ {end}（含起止日）"

@@ -9,6 +9,7 @@ import streamlit as st
 from src.backup import backup
 from src.calculations import FORMAL_STAGES, POOLS, STAGE_NAMES, Pair, ValidationError, rate
 from src.chapters import CHAPTERS
+from src.progress import BANK_TOTAL, CHAPTER_TOTALS, progress_html
 from src.structured_import import form_values
 from src.database import (ROOT, add_session, connect, initialize, preview,
                           integrity_check, read_settings, rebuild, start_b, state, undo_last, update_settings)
@@ -57,13 +58,12 @@ if page == "概览":
     chapter_filter = st.selectbox("章节筛选", ("全部", *CHAPTERS))
     with connect() as db:
         snap = snapshot(db, chapter=None if chapter_filter == "全部" else chapter_filter)
-    bank_total = int(settings["question_bank_total"])
+    bank_total = BANK_TOTAL if chapter_filter == "全部" else CHAPTER_TOTALS[chapter_filter]
     st.subheader(f"{settings['question_bank_name']} 一刷｜{chapter_filter}")
     a_done = snap["a_completed"]
     st.metric("已完成 / 总题量", f"{a_done} / {bank_total}", f"{rate(a_done, bank_total)}")
-    st.progress(min(a_done / bank_total, 1.0))
-    if chapter_filter != "全部":
-        st.caption("总题量为整本题库题量，此比例表示本章节已完成题目占整本题库的比例。")
+    st.markdown(progress_html(snap["chapters"], None if chapter_filter == "全部" else chapter_filter),
+                unsafe_allow_html=True)
     st.subheader("六轨正确率")
     metric_table(snap)
     st.subheader("当前错题池与章节快照")
@@ -238,10 +238,10 @@ else:
     st.subheader("题库设置")
     with st.form("settings"):
         name = st.text_input("题库名称", value=settings["question_bank_name"])
-        total = st.number_input("总题量", min_value=1, value=int(settings["question_bank_total"]), step=1)
+        st.caption(f"总题量：{BANK_TOTAL}（由各章节题量合计）")
         if st.form_submit_button("保存题库设置"):
             try:
-                update_settings(name, total)
+                update_settings(name, BANK_TOTAL)
                 refresh()
             except ValidationError as exc:
                 st.error(str(exc))
