@@ -19,8 +19,9 @@ def progress_html(chapters, selected=None):
         segments.append(f'<div style="width:{fill:.6f}%;height:100%;background:{color}"></div>')
         legend.append(f'<span style="white-space:nowrap"><span style="display:inline-block;width:0.75em;height:0.75em;background:{color};border-radius:2px;margin-right:0.3em"></span>{name} {done}/{count}</span>')
     label = "，".join(f"{name} {chapters[name]['a_completed']}/{CHAPTER_TOTALS[name]}" for name in names)
-    return ('<style>@keyframes chapter-progress-grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}'
-            '.chapter-progress-fill{animation:chapter-progress-grow 0.8s ease-out both;transform-origin:left}'
+    animation = f"chapter-progress-grow-{list(CHAPTER_TOTALS).index(selected) + 1 if selected else 0}"
+    return (f'<style>@keyframes {animation}{{from{{transform:scaleX(0)}}to{{transform:scaleX(1)}}}}'
+            f'.chapter-progress-fill{{animation:{animation} 0.8s ease-out both;transform-origin:left}}'
             '@media (prefers-reduced-motion:reduce){.chapter-progress-fill{animation:none}}</style>'
             '<div role="img" aria-label="章节一刷进度：' + label + '">'
             '<div style="height:14px;border-radius:7px;overflow:hidden;background:#e4e7eb">'
